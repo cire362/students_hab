@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  login     String   @unique
+  password  String
+  role      UserRole
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Admin     Admin?
+  Student   Student?
+  Teacher   Teacher?
+}
+
+model Admin {
+  id         Int    @id @default(autoincrement())
+  name       String
+  middleName String
+  surname    String
+  userId     Int    @unique
+  User       User   @relation(fields: [userId], references: [id])
+}
+
+model Student {
+  id         Int    @id @default(autoincrement())
+  name       String
+  middleName String
+  surname    String
+  userId     Int    @unique
+  User       User   @relation(fields: [userId], references: [id])
+
+  task Task[]
+  group StudentGroup[]
+}
+
+model Teacher {
+  id         Int    @id @default(autoincrement())
+  name       String
+  middleName String
+  surname    String
+  userId     Int    @unique
+  User       User   @relation(fields: [userId], references: [id])
+
+  subject TeacherSubject[]
+  schedule Schedule[]
+  group Group[]
+}
+
+enum UserRole {
+  ADMIN
+  STUDENT
+  TEACHER
+}
+
+enum TaskStatus {
+  IN_PROGRESS
+  DONE
+  TODO
+}
+
+model Task {
+  id Int @id @default(autoincrement())
+  studentId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  taskStatus TaskStatus
+  description String
+  endDate DateTime?
+
+  student Student @relation(fields: [studentId], references: [id])
+}
+
+model Group {
+  id Int @id @default(autoincrement())
+  name String
+  teacherId Int
+  course Int
+
+  student StudentGroup[]
+  subject GroupSubject[]
+  schedule Schedule[]
+
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+}
+
+model StudentGroup {
+  id Int @id @default(autoincrement())
+  studentId Int
+  groupId Int
+
+  student Student @relation(fields: [studentId], references: [id])
+  group Group @relation(fields: [groupId], references: [id])
+}
+
+model GroupSubject {
+  id Int @id @default(autoincrement())
+  groupId Int
+  subjectId Int
+
+  group Group @relation(fields: [groupId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+}
+
+model Subject {
+  id Int @id @default(autoincrement())
+  name String
+  description String?
+
+  teacher TeacherSubject[]
+  group GroupSubject[]
+  schedule Schedule[]
+}
+
+model TeacherSubject {
+  id Int @id @default(autoincrement())
+  subjectId Int
+  teacherId Int
+
+  subject Subject @relation(fields: [subjectId], references: [id])
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+}
+
+enum WeekType {
+  EVEN   
+  ODD    
+  BOTH   
+}
+
+model Schedule {
+  id          Int      @id @default(autoincrement())
+  subjectId   Int
+  groupId     Int
+  teacherId   Int
+
+  dayOfWeek   Int      
+  weekType    WeekType 
+  startTime   String  
+  endTime     String   
+  
+  description String?
+  cabinet     String
+
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  group       Group    @relation(fields: [groupId], references: [id])
+  teacher     Teacher  @relation(fields: [teacherId], references: [id]) 
+}
