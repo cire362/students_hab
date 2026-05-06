@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import { sign } from "hono/jwt";
 import type { UserCreateInput } from "../generated/prisma/models";
 import { prisma } from "../lib/prisma";
+import { checkSecret } from "../utils/checkSecret";
 
 export abstract class AuthService {
   static async register(data: UserCreateInput) {
@@ -82,10 +83,7 @@ export abstract class AuthService {
         });
       }
 
-      const secret = process.env.JWT_SECRET;
-      if (!secret) {
-        throw new HTTPException(500, { message: "Ошибка сервера" });
-      }
+      const secret = checkSecret();
 
       const payload = {
         userId: user.id,

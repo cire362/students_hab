@@ -5,17 +5,15 @@ import {
   updateTaskSchema,
 } from "../validation/task.validator";
 import { Hono } from "hono";
-import { HTTPException } from "hono/http-exception";
 import type { JwtPayload } from "../types";
 import { zValidator } from "@hono/zod-validator";
 import { validationHook } from "../utils/validator-handler";
+import { checkSecret } from "../utils/checkSecret";
+import { checkRole } from "../utils/checkRole";
 
 const taskRouter = new Hono();
 
-const secret = process.env.JWT_SECRET;
-if (!secret) {
-  throw new HTTPException(500, { message: "Ошибка сервера" });
-}
+const secret = checkSecret();
 
 taskRouter.use("/*", jwt({ secret: secret, alg: "HS256" }));
 
@@ -24,11 +22,9 @@ taskRouter.post(
   zValidator("json", createTaskSchema, validationHook),
   async (c) => {
     const payload = c.get("jwtPayload") as JwtPayload;
-    const req = c.req.valid("json");
+    checkRole(["STUDENT"], payload.userRole);
 
-    if (payload.userRole === "ADMIN" || payload.userRole === "TEACHER") {
-      throw new HTTPException(403, { message: "Отказано в доступе" });
-    }
+    const req = c.req.valid("json");
 
     const task = await TaskService.createTask(req, payload.userId);
 

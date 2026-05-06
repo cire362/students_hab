@@ -4,6 +4,7 @@ import { Hono, type Context } from "hono";
 import { HTTPException } from "hono/http-exception";
 import authRouter from "./routes/auth.routes";
 import taskRouter from "./routes/task.routes";
+import scheduleRouter from "./routes/schedule.routes";
 
 const app = new Hono();
 
@@ -23,6 +24,7 @@ app.get("/", (c) => {
 
 app.route("/api/v1/auth", authRouter);
 app.route("/api/v1/task", taskRouter);
+app.route("/api/v1/schedule", scheduleRouter);
 
 const rawPort = (process.env.PORT ?? "").trim();
 const parsedPort = rawPort.length > 0 ? Number(rawPort) : Number.NaN;

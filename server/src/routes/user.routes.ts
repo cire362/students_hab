@@ -6,12 +6,9 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { validationHook } from "../utils/validator-handler";
 import type { JwtPayload } from "../types";
+import { checkSecret } from "../utils/checkSecret";
 
-const secret = process.env.JWT_SECRET;
-
-if (!secret) {
-  throw new HTTPException(500, { message: "Ошибка сервера" });
-}
+const secret = checkSecret();
 
 const userRouter = new Hono();
 
@@ -23,10 +20,12 @@ userRouter.put(
   async (c) => {
     const jwtPayload = c.get("jwtPayload") as JwtPayload;
     const id = parseInt(c.req.param("id"));
-    const req = c.req.valid("json");
+
     if (id !== jwtPayload.userId) {
       throw new HTTPException(403, { message: "Отказано в доступе" });
     }
+
+    const req = c.req.valid("json");
     const user = await UserService.updateUser(req, id);
     return c.json({ message: "Данные обновлены", user }, 201);
   },
