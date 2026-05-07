@@ -5,8 +5,11 @@ import { HTTPException } from "hono/http-exception";
 import authRouter from "./routes/auth.routes";
 import taskRouter from "./routes/task.routes";
 import scheduleRouter from "./routes/schedule.routes";
+import { cors } from "hono/cors";
 
 const app = new Hono();
+
+app.use(cors());
 
 app.onError((err: any, c: Context) => {
   if (err instanceof HTTPException) {
